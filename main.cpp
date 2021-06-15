@@ -3,15 +3,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-double rotAngle = 0; // rotation angle (BEWARE: Global)
-double rotAngle1 = 0; // rotation angle (BEWARE: Global)
+
+#include "object.h"
+
+double rotAngle = 20; // rotation angle (BEWARE: Global)
+double rotAngle1 = 20; // rotation angle (BEWARE: Global)
 float angle=0.0, deltaAngle = 0.0, ratio;
-float x=0.0f,y=1.75f,z=15.0f; // posisi awal kamera
+float x=0.0f,y=1.75f,z=20.0f; // posisi awal kamera
 float lx=0.0f,ly=0.0f,lz=-1.0f;
+float xStreet = 0, yStreet = 0, zStreet = 0;
 int deltaMove = 0,h,w;
 int bitmapHeight=12;
 const double PI = 3.141592653589793;
 int i,j,radius,jumlah_titik,x_tengah,y_tengah;
+const float Z_MIN_JALAN = -1200, Z_MAX_JALAN = 200;
+const float X_MIN_JALAN = -20, X_MAX_JALAN = 20;
+int buildings = 1;
+int isNaik = 0;
+double y_gerbang = 0.15;
 
 void Reshape(int w1, int h1)
 {
@@ -32,11 +41,12 @@ void Reshape(int w1, int h1)
         0.0f,1.0f,0.0f);
 }
 
-void moveMeFlat(int i)
+void moveMeFlat(double i)
 {
 // Fungsi ini untuk maju mundur kamera
-    x = x + i*(lx)*1;
-    z = z + i*(lz)*1;
+    x = x + (i/4)*(lx)*1;
+    y = y + (i/4)*(ly)*1;
+    z = z + (i/4)*(lz)*1;
     glLoadIdentity();
     gluLookAt(x, y, z,x + lx,y + ly,z + lz,0.0f,1.0f,0.0f);
 }
@@ -58,38 +68,494 @@ void keyboard(unsigned char k, int x, int y)
     case 'd':
         rotAngle -= 10; // decrease rotation by 5 degrees
         break;
+       case 'o': // maju
+        if(zStreet  < -1*(Z_MIN_JALAN + 30)){
+        	if(isNaik == 0){	
+        		if(zStreet < 485 || zStreet > 496){
+        			zStreet += 2;
+        		}
+        	}else{
+        		zStreet += 2;
+       	 	}
+        }
+        
+        break;
+    case 'l': // mundur
+    	if(zStreet > -1*(Z_MAX_JALAN - 10)){
+    			if(isNaik == 0){
+    			if(zStreet > 510 || zStreet < 496){
+    				zStreet -= 2;
+    			}
+    		}else{
+    			zStreet -= 2;
+    		}
+    	}
+        
+        break;
+	case 'k': // kiri
+		if(xStreet*(-1) > X_MIN_JALAN+2){
+	        xStreet += 1;	
+		} 
+        break;
+    case ';': // kanan
+        if(xStreet*(-1) < X_MAX_JALAN-3){
+	        xStreet -= 1;	
+		}
+        break;
+    case 'n': // buka gerbang
+    	isNaik = 1;
+    	break;
+    case 'm': // tutup gerbang
+    	isNaik = 0;
+    	break;
     case 'q':
         exit(0); // exit
     }
     glutPostRedisplay();
 }
 
-void Grid()
+void gerbangNaik(){
+	if(isNaik == 1){
+		if(y_gerbang < 0.4){
+			y_gerbang += 0.005;
+		}
+	}else{
+		if(y_gerbang > 0.15){
+			y_gerbang -= 0.005;
+		}
+	}
+}
+
+void gedung(){
+	if (buildings){
+        //Gedung kanan
+        Gedung kantor1a(40,12,-30,25,0.8,0.8,0.8);
+        Gedung kantor2a(40,10,10,25,0.4,0.6,0.4);
+        Gedung kantor3a(40,10,70,25,0.4,0.4,0.7);
+        Gedung kantor4a(40,10,110,25,0.4,0.4,0.4);
+        Gedung kantor5a(40,10,150,25,0.6,0.4,0.4);
+        Gedung kantor6a(40,10,-200,25,0.8,0.8,0.4);
+        Gedung kantor7a(40,10,-240,25,0.4,0.4,0.6);
+        Gedung kantor8a(50,10,250,50,0.4,0.4,0.6);
+        Gedung kantor9a(40,3,-50,10,0.2,0.4,0.4); //kecil1
+        Gedung kantor11a(80,3,-80,10,0.7,0.4,0.4); //kecil3
+        Gedung kantor12a(40,3,-95,10,0.4,0.6,0.4); //kecil4
+        Gedung kantor14a(40,3,-125,10,0.5,0.4,0.5); //kecil6
+        Gedung kantor15a(40,10,-160,25,0.6,0.6,0.6); //kecil7
+        Gedung kantor16a(40,10,360,25,0.6,0.6,0.6);
+
+        //gedung kiri
+        Gedung kantor1b(-50,20,300,50,0.4,0.9,0.4);
+        Gedung kantor3b(-30,0,380,10,0.4,0.4,0.9); //kecil2
+        Gedung kantor2b(-30,5,360,10,0.9,0.4,0.4); //kecil1
+        Gedung kantor4b(-30,5,340,10,0.4,0.9,0.9); //kecil3
+        Gedung kantor5b(-40,10,240,25,0.9,0.4,0.9);
+        Gedung kantor6b(-40,10,200,25,0.9,0.9,0.4);
+        Gedung kantor7b(-40,10,160,25,0.7,0.5,0.7);
+        Gedung kantor8b(-40,10,120,25,0.5,0.5,0.7);
+        Gedung kantor9b(-40,10,20,25,0.5,0.7,0.7);
+        Gedung kantor10b(-40,10,-20,25,0.7,0.7,0.5);
+        Gedung kantor11b(-50,20,-100,50,0.6,0.9,0.7);
+        Gedung kantor12b(-40,10,-140,25,0.7,0.3,0.6);
+    }
+}
+
+void pohon(){
+	//batang
+		glPushMatrix();
+			glColor3ub(122, 61, 31);
+			glRotated(270, 1, 0, 0);
+			glTranslatef(5, -10, 0);
+			gluCylinder(gluNewQuadric(), 1.5, 0.5, 9.5, 25, 25);
+		glPopMatrix();
+		
+		//daun
+		glPushMatrix();
+			glColor3ub(25, 148, 19);
+			glScaled(2, 2, 2);
+			glRotated(90, 0, 1, 0);
+			glTranslatef(-5, 6.2, 2.5);
+			glutSolidDodecahedron();
+		glPopMatrix();
+		glPushMatrix();
+			glColor3ub(18,118,13);
+			glScaled(2, 2, 2);
+			glRotated(90, 0, 1, 0);
+			glTranslatef(-5, 5.2, 1.5);
+			glutSolidDodecahedron();
+		glPopMatrix();
+		glPushMatrix();
+			glColor3ub(30, 130, 25);
+			glScaled(2, 2, 2);
+			glRotated(90, 0, 1, 0);
+			glTranslatef(-5, 5.2, 3.5);
+			glutSolidDodecahedron();
+		glPopMatrix();
+}
+
+void gerbang(){
+	glColor3f(0.0,0.0,0.0);
+	glTranslatef(25,1,-500); //koordinat tiang item
+	glScaled(10, 50, 3); //perbesaran tiang item
+	glutSolidCube(1);
+	glTranslatef(-5, 0, 0);
+	glutSolidCube(1);
+	
+	glColor3f(0.1, 0.1, 0.3);
+	glTranslatef(2.5,y_gerbang,0); //koordinat papan merah
+	glScaled(5, 0.3, 1.1); //perbesaran papan merah
+	glutSolidCube(1);
+}
+
+void landmark()
 {
-// Fungsi untuk membuat grid di "lantai"
-    double i;
-    const float Z_MIN = -50, Z_MAX = 50;
-    const float X_MIN = -50, X_MAX = 50;
-    const float gap = 1.5;
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_LINES);
-    for(i=Z_MIN; i<Z_MAX; i+=gap)
-    {
-        glVertex3f(i, 0, Z_MIN);
-        glVertex3f(i, 0, Z_MAX);
-    }
-    for(i=X_MIN; i<X_MAX; i+=gap)
-    {
-        glVertex3f(X_MIN, 0, i);
-        glVertex3f(X_MAX, 0, i);
-    }
+	//kiri jalan
+	glPushMatrix();
+	glColor3f(0.3, 0.3, 0.3);
+	glBegin(GL_QUADS);
+    	glVertex3f(X_MIN_JALAN, -0.01, Z_MIN_JALAN);
+    	glVertex3f(X_MIN_JALAN, -0.01, Z_MAX_JALAN);
+    	glVertex3f(X_MIN_JALAN, 1.5 , Z_MAX_JALAN);
+    	glVertex3f(X_MIN_JALAN, 1.5, Z_MIN_JALAN);
     glEnd();
+    
+    glColor3f(0.0, 0.8, 0.4);
+    glBegin(GL_QUADS);
+    	glVertex3f(-400, 1.5, Z_MIN_JALAN);
+    	glVertex3f(-400, 1.5, Z_MAX_JALAN);
+    	glVertex3f(X_MIN_JALAN, 1.5, Z_MAX_JALAN);
+    	glVertex3f(X_MIN_JALAN, 1.5, Z_MIN_JALAN);
+    glEnd();
+    glPopMatrix();
+	
+	//jalan tengah
+	glPushMatrix();
+	glColor3f(0.1, 0.1, 0.1);
+    glBegin(GL_QUADS);
+    	glVertex3f(X_MIN_JALAN, -0.01, Z_MIN_JALAN);
+    	glVertex3f(X_MIN_JALAN, -0.01, Z_MAX_JALAN);
+    	glVertex3f(X_MAX_JALAN, -0.01, Z_MAX_JALAN);
+    	glVertex3f(X_MAX_JALAN, -0.01, Z_MIN_JALAN);
+    glEnd();
+    glPopMatrix();
+    
+    // garis tengah
+    glPushMatrix();
+    for(int i = Z_MAX_JALAN; i > Z_MIN_JALAN; i = i - 20){
+    	glColor3f(1.0, 1.0, 1.0);
+    	glBegin(GL_QUADS);
+    		glVertex3f(-0.5, 0.2, i);
+    		glVertex3f(-0.5, 0.2, i-10);
+    		glVertex3f(0.5, 0.2, i-10);
+    		glVertex3f(0.5, 0.2, i);
+    	glEnd();
+    }
+    glPopMatrix();
+    
+    //kanan jalan
+    glPushMatrix();
+    glColor3f(0.3, 0.3, 0.3);
+	glBegin(GL_QUADS);
+    	glVertex3f(X_MAX_JALAN, -0.01, Z_MIN_JALAN);
+    	glVertex3f(X_MAX_JALAN, -0.01, Z_MAX_JALAN);
+    	glVertex3f(X_MAX_JALAN, 1.5, Z_MAX_JALAN);
+    	glVertex3f(X_MAX_JALAN, 1.5, Z_MIN_JALAN);
+    glEnd();
+    
+    glColor3f(0.0, 0.8, 0.4);
+	glBegin(GL_QUADS);
+    	glVertex3f(X_MAX_JALAN, 1.5, Z_MIN_JALAN);
+    	glVertex3f(X_MAX_JALAN, 1.5, Z_MAX_JALAN);
+    	glVertex3f(400, 1.5, Z_MAX_JALAN);
+    	glVertex3f(400, 1.5, Z_MIN_JALAN);
+    glEnd();
+    glPopMatrix();
+    
+    //gedung
+    glPushMatrix();
+   		glTranslated(0, 3, -200);
+    	gedung();
+    glPopMatrix();
+    
+    glPushMatrix();
+    	glRotated(180, 0, 1, 0);
+   		glTranslated(0, 3, 800);
+    	gedung();
+    glPopMatrix();
+    
+    //gerbang
+	glPushMatrix();
+		gerbang();
+	glPopMatrix();
+	
+	//Pohon sebelum gebang
+	//POHON Kiri
+	//pohon kiri depan
+	glPushMatrix();
+		glTranslated(-35, 1.5, -452);
+		glScaled(1.2, 1.2, 1.2);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-40, 1.5, -455);
+		glScaled(2.0, 2.0, 2.0);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -438);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -390);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -385);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -260);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -250);
+		glScaled(0.6, 0.6, 0.6);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -160);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -140);
+		glScaled(1.5, 1.5, 1.5);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, -110);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(-35, 1.5, 10);
+		pohon();
+	glPopMatrix();
+	//pohon kiri belakang
+	glPushMatrix();
+		glTranslated(-35, 1.5, 55);
+		pohon();
+	glPopMatrix();
+	
+	//POHON Kanan
+	//pohon kanan depan
+	glPushMatrix();
+		glTranslated(35, 1.5, -491);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	
+	glPushMatrix();
+		glTranslated(35, 1.5, -490);
+		glScaled(1.5, 1.5, 1.5);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -475);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -385);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -345);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -300);
+		glScaled(1.5, 1.5, 1.5);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -285);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -165);
+		glScaled(1.5, 1.5, 1.5);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -120);
+		glScaled(0.8, 0.8, 0.8);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, -25);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, 0);
+		glScaled(1.2, 1.2, 1.2);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, 90);
+		pohon();
+	glPopMatrix();
+	
+	//pohon kanan belakang
+	glPushMatrix();
+		glTranslated(35, 1.5, 120);
+		glScaled(1.2, 1.2, 1.2);
+		pohon();
+	glPopMatrix();
+	glPushMatrix();
+		glTranslated(35, 1.5, 175);
+		glScaled(1.2, 1.2, 1.2);
+		pohon();
+	glPopMatrix();
+	
+	//pohon sesudah gerbang
+	glPushMatrix();
+    	glRotated(180, 0, 1, 0);
+   		glTranslated(0, 0, 1000);
+		glPushMatrix();
+			glTranslated(-35, 1.5, -452);
+			glScaled(1.2, 1.2, 1.2);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-40, 1.5, -455);
+			glScaled(2.0, 2.0, 2.0);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -438);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -390);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -385);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -260);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -250);
+			glScaled(0.6, 0.6, 0.6);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -160);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -140);
+			glScaled(1.5, 1.5, 1.5);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, -110);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, 10);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(-35, 1.5, 55);
+			pohon();
+		glPopMatrix();
+		
+		glPushMatrix();
+			glTranslated(35, 1.5, -491);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -490);
+			glScaled(1.5, 1.5, 1.5);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -475);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -385);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -345);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -300);
+			glScaled(1.5, 1.5, 1.5);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -285);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -165);
+			glScaled(1.5, 1.5, 1.5);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -120);
+			glScaled(0.8, 0.8, 0.8);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, -25);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, 0);
+			glScaled(1.2, 1.2, 1.2);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, 90);
+			pohon();
+		glPopMatrix();
+	
+		glPushMatrix();
+			glTranslated(35, 1.5, 120);
+			glScaled(1.2, 1.2, 1.2);
+			pohon();
+		glPopMatrix();
+		glPushMatrix();
+			glTranslated(35, 1.5, 175);
+			glScaled(1.2, 1.2, 1.2);
+			pohon();
+		glPopMatrix();
+    glPopMatrix();
 }
 
 void Truk()
 {
     glPushMatrix();
-    glTranslatef(-3,0.8,0);
+    glRotated(-90, 0, 1, 0);
+    glScaled(1.1, 1.1, 1.1);
+    glTranslatef(-10,0.8,-2);
 	//---------Kepala truk--------------
 	//depan
     glPushMatrix();
@@ -1013,7 +1479,11 @@ void display()
     glRotated(rotAngle, 0, 1, 0); // rotate by rotAngle about y-axis
     glRotated(rotAngle1, 1, 0, 0); // rotate by rotAngle about yaxis
 // Gambar grid
-    Grid();
+	glPushMatrix();
+    glTranslated(xStreet,0,zStreet);
+    gerbangNaik();
+    landmark();
+    glPopMatrix();
 // Gambar objek
     Truk();
     glPopMatrix();
@@ -1101,7 +1571,7 @@ int main(int argc, char **argv)
     glutReshapeFunc(Reshape);
     lighting();
     init();
-    glClearColor(0.0f,0.0f,0.0f,0.0f);
+    glClearColor(0.64f,0.83f,0.93f,0.0f);
     glutMainLoop();
     return(0);
 }
